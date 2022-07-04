@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -30,53 +31,6 @@ The navigation delegate is set to block navigation to the youtube website.
 ''';
 
 const String kLocalExamplePage = '''
-<h2>Applying for Citizenship</h2>
-<p><strong>When you apply for citizenship, officials will check your status, verify that you are not prohibited from applying, and ensure that you meet the requirements.</strong></p>
-<p>Your application may take several months. Please ensure that the&nbsp;<a href="https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/discover-canada/read-online/more-information.html">Call Centre</a>&nbsp;always has your correct address while your application is being processed.</p>
-<p><img src="https://www.canada.ca/content/dam/ircc/migration/ircc/english/resources/publications/discover/images/section-03a.jpg?width=590&amp;height=201" alt="Section 03a 1" /></p>
-<div class="mwsbodytext text parbase section">
-<h3>How to Use this Booklet to Prepare for the Citizenship Test</h3>
-</div>
-<div class="mwsbodytext text parbase section">
-<p>This booklet will help you prepare for the citizenship test. You should:</p>
-<ul>
-<li>Study this guide;</li>
-<li>Ask a friend or family member to help you practise answering questions about Canada;</li>
-<li>Call a local school or school board, a college, a community centre or a local organization that provides services to immigrants and ask for information on citizenship classes;</li>
-<li>Take English or French language classes, which the Government of Canada offers free of charge.</li>
-</ul>
-</div>
-<div class="mwsbodytext text parbase section">
-<div class="mwsbodytext text parbase section">
-<h3>About the Citizenship Test</h3>
-</div>
-<div class="mwsbodytext text parbase section">
-<p>The citizenship test is usually a written test, but it could be an interview. You will be tested on two basic requirements for citizenship: 1)&nbsp;knowledge of Canada and of the rights and responsibilities of citizenship, and 2)&nbsp;adequate knowledge of English or French. Adult applicants 55&nbsp;years of age and over do not need to write the citizenship test. The&nbsp;<em><a href="https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/discover-canada/read-online/authorities.html">Citizenship Regulations</a></em>&nbsp;provide information on how your ability to meet the knowledge of Canada requirement is determined.</p>
-</div>
-<div class="mwsbodytext text parbase section">
-<p><img class="pull-right mrgn-lft-md" src="https://www.canada.ca/content/dam/ircc/migration/ircc/english/resources/publications/discover/images/section-03c.jpg" alt="" />All the citizenship test questions are based on the subject areas noted in the&nbsp;<em>Citizenship Regulations</em>, and all required information is provided in this study guide.</p>
-</div>
-<div class="mwsbodytext text parbase section"><img src="http://0.0.0.0:8055/assets/87aabcc6-73b3-442a-9d9b-96a446e7bf32?access_token=uPS_itkVoUmqNe_MjySGZSt6xaGDE5-9&amp;width=138&amp;height=158" alt="Image-2" /></div>
-<div class="mwsbodytext text parbase section">
-<div class="mwsbodytext text parbase section">
-<h3>After the Test</h3>
-</div>
-<div class="mwsbodytext text parbase section">
-<p>If you pass the test and meet all the other requirements, you will receive a Notice to Appear to&nbsp;<em>Take the Oath of Citizenship</em>. This document tells you the date, time and place of your citizenship ceremony.</p>
-<p>At the ceremony, you will:</p>
-<ul>
-<li>Take the Oath of Citizenship;</li>
-<li>Sign the oath form; and</li>
-<li>Receive your Canadian Citizenship Certificate.</li>
-</ul>
-<p>If you do not pass the test, you will receive a notification indicating the next steps.</p>
-<p><strong>You are encouraged to bring your family and friends to celebrate this occasion.</strong></p>
-<p><img src="http://0.0.0.0:8055/assets/2f8afa9c-903a-4727-b1f0-bb27e65455ec?access_token=uPS_itkVoUmqNe_MjySGZSt6xaGDE5-9&amp;width=590&amp;height=158" alt="Image-3" /></p>
-</div>
-</div>
-</div>
-''';
-const String kLocalExamplePage1 = '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,8 +104,7 @@ class _WebViewExampleState extends State<WebViewExample> {
         ],
       ),
       body: WebView(
-        initialUrl:
-            'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/discover-canada/read-online/applying-citizenship.html',
+        initialUrl: 'https://flutter.dev',
         javascriptMode: JavascriptMode.unrestricted,
         onWebViewCreated: (WebViewController webViewController) {
           _controller.complete(webViewController);
@@ -173,35 +126,14 @@ class _WebViewExampleState extends State<WebViewExample> {
         onPageStarted: (String url) {
           print('Page started loading: $url');
         },
-        onPageFinished: (String url) async {
+        onPageFinished: (String url) {
           print('Page finished loading: $url');
-          const removePagination =
-              'document.getElementsByClassName("pagination")[0].hidden = true';
-          final controller = await _controller.future;
-          cleanupLoadedHtmlPage(controller);
         },
         gestureNavigationEnabled: true,
         backgroundColor: const Color(0x00000000),
       ),
-      // floatingActionButton: favoriteButton(),
+      floatingActionButton: favoriteButton(),
     );
-  }
-
-  void cleanupLoadedHtmlPage(WebViewController controller) {
-    const List<String> javascriptToExecute = [
-      'document.getElementById("wb-lng").hidden = true;',
-      'document.getElementById("wb-srch").hidden = true',
-      'document.getElementsByClassName("gcweb-menu")[0].hidden = true',
-      'document.getElementsByClassName("mwsalerts")[0].hidden = true',
-      'document.getElementById("wb-bc").hidden = true',
-      'document.getElementsByClassName("pagination")[0].hidden = true',
-      'document.getElementsByClassName("pagedetails")[0].hidden = true',
-      'document.getElementsByClassName("global-footer")[0].hidden = true'
-    ];
-    for (var jsString in javascriptToExecute) {
-      // print("removing $jsString");
-      controller.runJavascript(jsString);
-    }
   }
 
   JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
@@ -242,11 +174,19 @@ class _WebViewExampleState extends State<WebViewExample> {
 }
 
 enum MenuOptions {
+  showUserAgent,
+  listCookies,
+  clearCookies,
+  addToCache,
+  listCache,
+  clearCache,
   navigationDelegate,
+  doPostRequest,
   loadLocalFile,
   loadFlutterAsset,
   loadHtmlString,
   transparentBackground,
+  setCookie,
 }
 
 class SampleMenu extends StatelessWidget {
@@ -267,8 +207,29 @@ class SampleMenu extends StatelessWidget {
           key: const ValueKey<String>('ShowPopupMenu'),
           onSelected: (MenuOptions value) {
             switch (value) {
+              case MenuOptions.showUserAgent:
+                _onShowUserAgent(controller.data!, context);
+                break;
+              case MenuOptions.listCookies:
+                _onListCookies(controller.data!, context);
+                break;
+              case MenuOptions.clearCookies:
+                _onClearCookies(context);
+                break;
+              case MenuOptions.addToCache:
+                _onAddToCache(controller.data!, context);
+                break;
+              case MenuOptions.listCache:
+                _onListCache(controller.data!, context);
+                break;
+              case MenuOptions.clearCache:
+                _onClearCache(controller.data!, context);
+                break;
               case MenuOptions.navigationDelegate:
                 _onNavigationDelegateExample(controller.data!, context);
+                break;
+              case MenuOptions.doPostRequest:
+                _onDoPostRequest(controller.data!, context);
                 break;
               case MenuOptions.loadLocalFile:
                 _onLoadLocalFileExample(controller.data!, context);
@@ -282,12 +243,44 @@ class SampleMenu extends StatelessWidget {
               case MenuOptions.transparentBackground:
                 _onTransparentBackground(controller.data!, context);
                 break;
+              case MenuOptions.setCookie:
+                _onSetCookie(controller.data!, context);
+                break;
             }
           },
           itemBuilder: (BuildContext context) => <PopupMenuItem<MenuOptions>>[
+            PopupMenuItem<MenuOptions>(
+              value: MenuOptions.showUserAgent,
+              enabled: controller.hasData,
+              child: const Text('Show user agent'),
+            ),
+            const PopupMenuItem<MenuOptions>(
+              value: MenuOptions.listCookies,
+              child: Text('List cookies'),
+            ),
+            const PopupMenuItem<MenuOptions>(
+              value: MenuOptions.clearCookies,
+              child: Text('Clear cookies'),
+            ),
+            const PopupMenuItem<MenuOptions>(
+              value: MenuOptions.addToCache,
+              child: Text('Add to cache'),
+            ),
+            const PopupMenuItem<MenuOptions>(
+              value: MenuOptions.listCache,
+              child: Text('List cache'),
+            ),
+            const PopupMenuItem<MenuOptions>(
+              value: MenuOptions.clearCache,
+              child: Text('Clear cache'),
+            ),
             const PopupMenuItem<MenuOptions>(
               value: MenuOptions.navigationDelegate,
               child: Text('Navigation Delegate example'),
+            ),
+            const PopupMenuItem<MenuOptions>(
+              value: MenuOptions.doPostRequest,
+              child: Text('Post Request'),
             ),
             const PopupMenuItem<MenuOptions>(
               value: MenuOptions.loadHtmlString,
@@ -306,10 +299,74 @@ class SampleMenu extends StatelessWidget {
               value: MenuOptions.transparentBackground,
               child: Text('Transparent background example'),
             ),
+            const PopupMenuItem<MenuOptions>(
+              value: MenuOptions.setCookie,
+              child: Text('Set cookie'),
+            ),
           ],
         );
       },
     );
+  }
+
+  Future<void> _onShowUserAgent(
+      WebViewController controller, BuildContext context) async {
+    // Send a message with the user agent string to the Toaster JavaScript channel we registered
+    // with the WebView.
+    await controller.runJavascript(
+        'Toaster.postMessage("User Agent: " + navigator.userAgent);');
+  }
+
+  Future<void> _onListCookies(
+      WebViewController controller, BuildContext context) async {
+    final String cookies =
+        await controller.runJavascriptReturningResult('document.cookie');
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Text('Cookies:'),
+          _getCookieList(cookies),
+        ],
+      ),
+    ));
+  }
+
+  Future<void> _onAddToCache(
+      WebViewController controller, BuildContext context) async {
+    await controller.runJavascript(
+        'caches.open("test_caches_entry"); localStorage["test_localStorage"] = "dummy_entry";');
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Added a test entry to cache.'),
+    ));
+  }
+
+  Future<void> _onListCache(
+      WebViewController controller, BuildContext context) async {
+    await controller.runJavascript('caches.keys()'
+        // ignore: missing_whitespace_between_adjacent_strings
+        '.then((cacheKeys) => JSON.stringify({"cacheKeys" : cacheKeys, "localStorage" : localStorage}))'
+        '.then((caches) => Toaster.postMessage(caches))');
+  }
+
+  Future<void> _onClearCache(
+      WebViewController controller, BuildContext context) async {
+    await controller.clearCache();
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Cache cleared.'),
+    ));
+  }
+
+  Future<void> _onClearCookies(BuildContext context) async {
+    final bool hadCookies = await cookieManager.clearCookies();
+    String message = 'There were cookies. Now, they are gone!';
+    if (!hadCookies) {
+      message = 'There are no cookies.';
+    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+    ));
   }
 
   Future<void> _onNavigationDelegateExample(
@@ -317,6 +374,26 @@ class SampleMenu extends StatelessWidget {
     final String contentBase64 =
         base64Encode(const Utf8Encoder().convert(kNavigationExamplePage));
     await controller.loadUrl('data:text/html;base64,$contentBase64');
+  }
+
+  Future<void> _onSetCookie(
+      WebViewController controller, BuildContext context) async {
+    await cookieManager.setCookie(
+      const WebViewCookie(
+          name: 'foo', value: 'bar', domain: 'httpbin.org', path: '/anything'),
+    );
+    await controller.loadUrl('https://httpbin.org/anything');
+  }
+
+  Future<void> _onDoPostRequest(
+      WebViewController controller, BuildContext context) async {
+    final WebViewRequest request = WebViewRequest(
+      uri: Uri.parse('https://httpbin.org/post'),
+      method: WebViewRequestMethod.post,
+      headers: <String, String>{'foo': 'bar', 'Content-Type': 'text/plain'},
+      body: Uint8List.fromList('Test Body'.codeUnits),
+    );
+    await controller.loadRequest(request);
   }
 
   Future<void> _onLoadLocalFileExample(
@@ -339,6 +416,20 @@ class SampleMenu extends StatelessWidget {
   Future<void> _onTransparentBackground(
       WebViewController controller, BuildContext context) async {
     await controller.loadHtmlString(kTransparentBackgroundPage);
+  }
+
+  Widget _getCookieList(String cookies) {
+    if (cookies == null || cookies == '""') {
+      return Container();
+    }
+    final List<String> cookieList = cookies.split(';');
+    final Iterable<Text> cookieWidgets =
+        cookieList.map((String cookie) => Text(cookie));
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: cookieWidgets.toList(),
+    );
   }
 
   static Future<String> _prepareLocalFile() async {
