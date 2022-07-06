@@ -13,9 +13,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 void main() => runApp(const MaterialApp(home: WebViewExample()));
 
 class WebViewExample extends StatefulWidget {
-  const WebViewExample({Key? key, this.cookieManager}) : super(key: key);
-
-  final CookieManager? cookieManager;
+  const WebViewExample({Key? key}) : super(key: key);
 
   @override
   State<WebViewExample> createState() => _WebViewExampleState();
@@ -48,7 +46,7 @@ class _WebViewExampleState extends State<WebViewExample> {
   @override
   Widget build(BuildContext context) {
     if (!pageLoaded) {
-      Navigator.of(context).restorablePush(_dialogBuilder);
+      //Navigator.of(context).restorablePush(_dialogBuilder);
     }
     return Scaffold(
       backgroundColor: Colors.green,
@@ -139,40 +137,6 @@ class _WebViewExampleState extends State<WebViewExample> {
           );
         });
   }
-
-  Widget favoriteButton() {
-    return FutureBuilder<WebViewController>(
-        future: _controller.future,
-        builder: (BuildContext context,
-            AsyncSnapshot<WebViewController> controller) {
-          return FloatingActionButton(
-            onPressed: () async {
-              String? url;
-              if (controller.hasData) {
-                url = await controller.data!.currentUrl();
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    controller.hasData
-                        ? 'Favorited $url'
-                        : 'Unable to favorite',
-                  ),
-                ),
-              );
-            },
-            child: const Icon(Icons.favorite),
-          );
-        });
-  }
-}
-
-enum MenuOptions {
-  navigationDelegate,
-  loadLocalFile,
-  loadFlutterAsset,
-  loadHtmlString,
-  transparentBackground,
 }
 
 class NavigationControls extends StatelessWidget {
