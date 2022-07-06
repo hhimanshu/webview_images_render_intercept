@@ -22,6 +22,7 @@ class WebViewExample extends StatefulWidget {
 }
 
 class _WebViewExampleState extends State<WebViewExample> {
+  bool pageLoaded = false;
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
 
@@ -33,8 +34,22 @@ class _WebViewExampleState extends State<WebViewExample> {
     }
   }
 
+  static Route<Object?> _dialogBuilder(
+      BuildContext context, Object? arguments) {
+    return DialogRoute<void>(
+      context: context,
+      barrierDismissible: true,
+      useSafeArea: true,
+      builder: (BuildContext context) =>
+          const AlertDialog(title: Text('Material Alert!')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!pageLoaded) {
+      Navigator.of(context).restorablePush(_dialogBuilder);
+    }
     return Scaffold(
       backgroundColor: Colors.green,
       appBar: AppBar(
@@ -45,45 +60,60 @@ class _WebViewExampleState extends State<WebViewExample> {
           NavigationControls(_controller.future),
         ],
       ),
-      body: WebView(
-        initialUrl:
-            'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/discover-canada/read-online/canadas-history.html',
-        javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (WebViewController webViewController) {
-          _controller.complete(webViewController);
-        },
-        onProgress: (int progress) {
-          print('WebView is loading (progress : $progress%)');
-        },
-        javascriptChannels: <JavascriptChannel>{
-          _toasterJavascriptChannel(context),
-        },
-        navigationDelegate: (NavigationRequest request) {
-          if (request.url.startsWith('https://www.youtube.com/')) {
-            print('blocking navigation to $request}');
-            return NavigationDecision.prevent;
-          }
-          print('allowing navigation to $request');
-          return NavigationDecision.navigate;
-        },
-        onPageStarted: (String url) {
-          print('Page started loading: $url');
-        },
-        onPageFinished: (String url) async {
-          print('Page finished loading: $url');
-          const removePagination =
-              'document.getElementsByClassName("pagination")[0].hidden = true';
-          final controller = await _controller.future;
-          cleanupLoadedHtmlPage(controller);
-        },
-        gestureNavigationEnabled: true,
-        backgroundColor: const Color(0x00000000),
+
+      body: Stack(
+        children: [
+          WebView(
+            initialUrl:
+                'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/discover-canada/read-online/canadas-history.html',
+            javascriptMode: JavascriptMode.unrestricted,
+            onWebViewCreated: (WebViewController webViewController) {
+              _controller.complete(webViewController);
+            },
+            onProgress: (int progress) {
+              print('WebView is loading (progress : $progress%)');
+            },
+            javascriptChannels: <JavascriptChannel>{
+              _toasterJavascriptChannel(context),
+            },
+            navigationDelegate: (NavigationRequest request) {
+              if (request.url.startsWith('https://www.youtube.com/')) {
+                print('blocking navigation to $request}');
+                return NavigationDecision.prevent;
+              }
+              print('allowing navigation to $request');
+              return NavigationDecision.navigate;
+            },
+            onPageStarted: (String url) {
+              print('Page started loading: $url');
+            },
+            onPageFinished: (String url) async {
+              print('Page finished loading: $url');
+              final controller = await _controller.future;
+              var cleanupFuture = cleanupLoadedHtmlPage(controller);
+              Future.wait(cleanupFuture).then((value) {
+                print("Clean up done => $value");
+                setState(() {
+                  pageLoaded = true;
+                });
+              });
+            },
+          ),
+          Visibility(
+              visible: !pageLoaded,
+              child: const Center(
+                child: Opacity(
+                  opacity: 1.0,
+                  child: CircularProgressIndicator(),
+                ),
+              ))
+        ],
       ),
       // floatingActionButton: favoriteButton(),
     );
   }
 
-  void cleanupLoadedHtmlPage(WebViewController controller) {
+  Iterable<Future<void>> cleanupLoadedHtmlPage(WebViewController controller) {
     const List<String> javascriptToExecute = [
       'document.getElementById("wb-lng").hidden = true;',
       'document.getElementById("wb-srch").hidden = true',
@@ -94,10 +124,10 @@ class _WebViewExampleState extends State<WebViewExample> {
       'document.getElementsByClassName("pagedetails")[0].hidden = true',
       'document.getElementsByClassName("global-footer")[0].hidden = true'
     ];
-    for (var jsString in javascriptToExecute) {
-      // print("removing $jsString");
-      controller.runJavascript(jsString);
-    }
+    return javascriptToExecute.map((js) {
+      print("removing $js");
+      return controller.runJavascript(js);
+    });
   }
 
   JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
