@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 void main() => runApp(const MaterialApp(home: PageLoadApp()));
+final isLoading = ValueNotifier<bool>(true);
 
 class PageLoadApp extends StatefulWidget {
   const PageLoadApp({Key? key}) : super(key: key);
@@ -13,49 +14,44 @@ class PageLoadApp extends StatefulWidget {
 }
 
 class _PageLoadAppState extends State<PageLoadApp> {
-  bool pageLoaded = false;
-
-  void onPageLoaded() {
-    setState(() {
-      pageLoaded = true;
-    });
-  }
-
-  static Future<String> get _url async {
-    await Future.delayed(const Duration(seconds: 10));
+  static String get _url {
+    // await Future.delayed(const Duration(seconds: 10));
     return 'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/discover-canada/read-online/canadas-history.html';
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Scaffold(
-          body: SafeArea(
-            child: Center(
-              child: FutureBuilder(
-                  future: _url,
-                  builder: (BuildContext context, AsyncSnapshot snapshot) =>
-                      snapshot.hasData
-                          ? WebViewWidget(
-                              url: snapshot.data,
-                              onPageLoaded: onPageLoaded,
-                              pageLoaded: pageLoaded,
-                            )
-                          : const CircularProgressIndicator()),
-            ),
-          ),
-        ),
-      );
+          body: Scaffold(
+        body: ValueListenableBuilder<bool>(
+            valueListenable: isLoading,
+            builder: (context, value, _) {
+              return Scaffold(
+                body: Stack(
+                  children: <Widget>[
+                    WebViewWidget(
+                      url: _url,
+                    ),
+                    (value == true
+                        ? Scaffold(
+                            body: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        : Container()),
+                  ],
+                ),
+              );
+              ;
+            }),
+      ));
 }
 
 class WebViewWidget extends StatefulWidget {
   final String url;
-  final bool pageLoaded;
-  final Function onPageLoaded;
 
-  const WebViewWidget(
-      {required this.url,
-      required this.onPageLoaded,
-      required this.pageLoaded});
+  const WebViewWidget({
+    required this.url,
+  });
 
   @override
   _WebViewWidget createState() => _WebViewWidget();
@@ -92,26 +88,13 @@ class _WebViewWidget extends State<WebViewWidget> {
       onWebViewCreated: (WebViewController webViewController) {
         _controller.complete(webViewController);
       },
-      onProgress: (int progress) {
-        print('WebView is loading (progress : $progress%)');
-      },
+      onProgress: (int progress) {},
       onPageStarted: (String url) {
+        isLoading.value = true;
         print('Page started loading: $url');
       },
       onPageFinished: (String url) async {
-        if (!widget.pageLoaded) {
-          print("Showing Alert dialog");
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return const AlertDialog(
-                  title: Text('Loading ...'),
-                  backgroundColor: Colors.red,
-                );
-              });
-        } else {
-          Navigator.pop(context);
-        }
+        // Navigator.pop(context);
 
         print('Page finished loading: $url');
 
@@ -119,7 +102,7 @@ class _WebViewWidget extends State<WebViewWidget> {
         var cleanupFuture = cleanupLoadedHtmlPage(controller);
         Future.wait(cleanupFuture).then((value) {
           print("Clean up done => $value");
-          widget.onPageLoaded();
+          isLoading.value = false;
         });
       },
     );
