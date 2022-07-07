@@ -28,17 +28,21 @@ class _PageLoadAppState extends State<PageLoadApp> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Center(
-          child: FutureBuilder(
-              future: _url,
-              builder: (BuildContext context, AsyncSnapshot snapshot) =>
-                  snapshot.hasData
-                      ? WebViewWidget(
-                          url: snapshot.data,
-                          onPageLoaded: onPageLoaded,
-                          pageLoaded: pageLoaded,
-                        )
-                      : const CircularProgressIndicator()),
+        body: Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: FutureBuilder(
+                  future: _url,
+                  builder: (BuildContext context, AsyncSnapshot snapshot) =>
+                      snapshot.hasData
+                          ? WebViewWidget(
+                              url: snapshot.data,
+                              onPageLoaded: onPageLoaded,
+                              pageLoaded: pageLoaded,
+                            )
+                          : const CircularProgressIndicator()),
+            ),
+          ),
         ),
       );
 }
@@ -101,7 +105,7 @@ class _WebViewWidget extends State<WebViewWidget> {
               context: context,
               builder: (BuildContext context) {
                 return const AlertDialog(
-                  title: Text('Material Alert!!'),
+                  title: Text('Loading ...'),
                   backgroundColor: Colors.red,
                 );
               });
